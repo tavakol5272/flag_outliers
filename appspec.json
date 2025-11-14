@@ -2,76 +2,95 @@
   "version": "1.2",
   "settings": [
     {
-      "id": "sdk",
-      "name": "The name of the MoveApps SDK",
-      "description": "Showcase requesting a string input from the users of your app.",
-      "defaultValue": "MoveApps SDK",
-      "type": "STRING"
+      "id": "prob_type",
+      "name": "Probability Type",
+      "description": "Choose the Probability Type",
+      "defaultValue": "joint",
+      "type": "DROPDOWN",
+      "options": [
+        { "value": "joint",   "displayText": "Joint" },
+        { "value": "step_turn",  "displayText": "Step turn" },
+        { "value": "delta_step", "displayText": "Delta Step" },
+        { "value": "delta_turn", "displayText": "Delta Turn" },
+        { "value": "custom", "displayText": "Custom" }
+      ]
     },
     {
-      "id": "year",
-      "name": "The year",
-      "description": "Insert description for the year setting setting",
-      "defaultValue": 2022,
-      "type": "INTEGER"
-    },
-    {
-      "id": "auxiliary-file-a",
-      "name": "Personalization",
-      "description": "You can personalize the app by providing a file",
-      "type": "USER_FILE"
+      "id": "threshold",
+      "name": "Threshold",
+      "description": "Probability percentile as a fraction (0–1). e.g.: 0.05 = flag lowest 5% as outliers.",
+      "defaultValue": 0.001,
+      "type": "DOUBLE"
     }
+    
   ],
   "dependencies": {
     "R": [
       {
-        "name": "lubridate"
+        "name": "move2"
       },
       {
-        "remotes": "install_git('https://gitlab.com/bartk/move2.git')"
+        "name": "sf"
+      },
+      {
+        "name": "terra"
       }
     ]
   },
-  "providedAppFiles": [
-    {
-      "settingId": "auxiliary-file-a",
-      "from": "data/auxiliary/user-files/provided-app-files/auxiliary-file-a/sample.txt"
-    }
-  ],
+  
   "license": {
     "key": "MIT"
   },
   "language": "eng",
   "keywords": [
-    "example",
-    "template"
+    "outlier",
+    "threshold",
+    "exclusion",
+    "exclude",
+    "remove",
+    "delete",
+    "flag"
+    
   ],
   "people": [
     {
-      "firstName": "Charles",
+      "firstName": "Kamran",
       "middleInitials": null,
-      "lastName": "Darwin",
-      "email": "creator@example.com",
+      "lastName": "Safi",
+      "email": "ksafi@ab.mpg.de",
       "roles": [
         "author",
         "creator"
       ],
-      "orcid": null,
-      "affiliation": null,
-      "affiliationRor": null
-    }
-  ],
-  "funding": [
+      "orcid": "..............",
+      "affiliation": "Max-Planck-Institute of Animal Behavior",
+      "affiliationRor": "https://ror.org/026stee22"
+    },
     {
-      "name": "funder name",
-      "comment": "grant for App"
-    }
-  ],
-  "references": [
+      "firstName": "Francesca",
+      "middleInitials": null,
+      "lastName": "Frisoni",
+      "email": "ffrisoni@ab.mpg.de",
+      "roles": [
+        "author",
+        "creator"
+      ],
+      "orcid": "...........",
+      "affiliation": "Max-Planck-Institute of Animal Behavior",
+      "affiliationRor": "https://ror.org/026stee22"
+    },
     {
-      "type": "IsDescribedBy",
-      "note": "Darwin, C. 1900. The creation. Journal XY. 1-2",
-      "url": "https://anylink.xyz"
+      "firstName": "Nafiseh",
+      "middleInitials": null,
+      "lastName": "Tavakol",
+      "email": "ntavakol@ab.mpg.de",
+      "roles": [
+        "author",
+        "creator"
+      ],
+      "orcid": "0000-0003-3674-4784",
+      "affiliation": "Max-Planck-Institute of Animal Behavior",
+      "affiliationRor": "https://ror.org/026stee22"
     }
   ]
 }
