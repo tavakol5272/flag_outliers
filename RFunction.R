@@ -2,7 +2,7 @@ library(move2)
 library(sf)
 library(terra)
 
-##for running localy
+##for running locally
 #if (!exists("logger.info")) logger.info <- function(...) message(...)
 
 
@@ -275,9 +275,16 @@ rFunction <-  function(data, threshold, prob_type=c("joint", "step_turn", "delta
   #################################################################
   
   # print the table of outliers
-  outliers_table <- subset(as.data.frame(data),
-                           is_outlier == TRUE,
-                           select = c("timestamp","step_turn_prob","joint_prob","outlier_percentile","is_outlier"))
+  
+  trk_col <- mt_track_id_column(data)
+  
+  outliers_table <- subset(
+    cbind(data.frame(track_id = as.character(data[[trk_col]])), as.data.frame(data) ),
+    is_outlier == TRUE,
+    select = c("track_id", "timestamp", "step_turn_prob",
+               "joint_prob", "outlier_percentile")
+  )
+  
   
   logger.info(paste("Preview", n_outliers, "outliers"))
   print(outliers_table)
@@ -297,12 +304,10 @@ rFunction <-  function(data, threshold, prob_type=c("joint", "step_turn", "delta
   }
 }
 
-################# Run localy ############################################
-## these lines are just to easily run the code line by line within the function. 
-## Once the code is written adjustparamenters in app-configuration.json and data path in .env dfile
+################# Run locally ############################################
 
-# data <- readRDS("./data/raw/input2_move2loc_LatLon.rds") ## change in .env file
-# threshold <- 0.05            ## change in app-configuration.json file
+# data <- readRDS("./data/raw/input2_move2loc_LatLon.rds") 
+# threshold <- 0.05            
 # prob_type <- "step_turn"
 # 
 # set.seed(42)
