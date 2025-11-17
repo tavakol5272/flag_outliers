@@ -2,6 +2,7 @@ library(move2)
 library(sf)
 library(terra)
 
+
 ##for running locally
 #if (!exists("logger.info")) logger.info <- function(...) message(...)
 
