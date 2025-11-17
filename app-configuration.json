@@ -1,4 +1,4 @@
 {
-    "threshold": 0.001,
-     "prob_type": "joint"
+    "threshold": 0.005,
+     "prob_type": "step_turn"
 }
