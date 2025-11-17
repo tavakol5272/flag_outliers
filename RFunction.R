@@ -4,9 +4,6 @@ library(terra)
 library(dplyr)
 library(lubridate)
 
-## for running locally
-## if (!exists("logger.info")) logger.info <- function(...) message(...)
-
 
 ########## Helper: plot per individual ###################################
 
@@ -145,6 +142,36 @@ rFunction <-  function(data,
     }
   }
   
+  ####### cleaning per individual #######################
+  #remove:empty locations, bad timestamps, extreme speeds (top 1%), very short time lags (< 60 s)
+  
+  
+  data <- data[order(mt_track_id(data)), ]
+  
+  data <- data %>%
+    arrange(timestamp) %>%
+    mutate(
+      timelag      = as.numeric(difftime(timestamp, lag(timestamp), units = "secs")),
+      step_length  = as.numeric(st_distance(geometry, lag(geometry), by_element = TRUE)), 
+      ground_speed_ms = step_length / timelag
+    ) %>%
+    filter(
+      !st_is_empty(geometry),
+      !is.na(timestamp),
+      is.na(timelag) | timelag >= 60        
+    ) %>%
+    filter(
+      ground_speed_ms <= quantile(ground_speed_ms, 0.99, na.rm = TRUE)  
+    ) %>%
+    ungroup()
+  
+  
+  if (nrow(data) < 3) {
+    logger.info("Fewer than 3 locations after cleaning; returning cleaned data without outlier flags.")
+    return(data)
+  }
+  
+  ###############################################################
   
   # Function to calculate 2D histogram of turning angle and step length
   TurnStepHist <- function(x, y, stand = TRUE, verbose = FALSE) {
@@ -353,9 +380,29 @@ rFunction <-  function(data,
     plot_per_individual(data, prob_label, drop_na)
   }
   
-  # Return step length and turning angle as already calculated
+  ######## step_length_mv, turning_angle_mv, and first/last day ########
+  
+  # step length and turning angle
   data$step_length_mv   <- as.numeric(stepLength)
   data$turning_angle_mv <- as.numeric(turningAngle)
+  
+  # time from current location to the next
+  data$timelag_tonext <- as.numeric(
+    difftime(dplyr::lead(data$timestamp), data$timestamp, units = "secs")
+  )
+  
+  # speed from current to next point
+  data$ground_speed_ms_tonext <- data$step_length_mv / data$timelag_tonext
+  
+  # remove first and last day 
+  data <- data %>%
+    dplyr::mutate(date = as.Date(timestamp)) %>%
+    dplyr::filter(
+      date != min(date, na.rm = TRUE),
+      date != max(date, na.rm = TRUE)
+    )
+  
+  #################################################################
   
   # print the table of outliers
   trk_col <- mt_track_id_column(data)
@@ -364,11 +411,14 @@ rFunction <-  function(data,
     cbind(data.frame(track_id = as.character(data[[trk_col]])), as.data.frame(data)),
     is_outlier == TRUE,
     select = c("track_id", "timestamp", "step_turn_prob",
-               "joint_prob", "outlier_percentile")
+               "joint_prob", "outlier_percentile", "is_outlier")
   )
   
+  n_outliers_after <- sum(data$is_outlier, na.rm = TRUE)
+  
   logger.info(paste(
-    "Preview", n_outliers, "outliers for individual(s):",
+    "Preview", n_outliers_after,
+    "outliers for individual(s) (not including first/last day):",
     paste(unique(as.character(data[[trk_col]])), collapse = ", ")
   ))
   
@@ -376,25 +426,15 @@ rFunction <-  function(data,
   print(outliers_table)
   cat("\n\n")
   
+  ####################################################
+  
+  
   # Return filtered or original object
   if (isTRUE(remove)) {
-    to_remove <- is_outlier | (drop_na & is_na_prob)
+    to_remove <- data$is_outlier | (drop_na & data$is_na_prob)
     filtered_data <- data[!to_remove, ]
     return(filtered_data)
   } else {
     return(data)
   }
 }
-
-################# Run locally ############################################
-
-# data <- readRDS("./data/raw/input2_move2loc_LatLon.rds")
-# threshold <- 0.05
-# prob_type <- "step_turn"
-#
-# set.seed(42)
-# out_put <- rFunction(data, threshold, prob_type,
-#                      remove = FALSE, plot = TRUE, drop_na = FALSE)
-# table(out_put$is_outlier, useNA = "ifany")
-# head(as.data.frame(out_put)[, c("timestamp","step_turn_prob","joint_prob",
-#                                 "outlier_percentile","is_outlier")], 20)

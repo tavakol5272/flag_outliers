@@ -34,6 +34,12 @@
       },
       {
         "name": "terra"
+      },
+      {
+        "name": "dplyr"
+      },
+      {
+        "name": "lubridate"
       }
     ]
   },
