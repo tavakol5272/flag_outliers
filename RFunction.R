@@ -438,3 +438,19 @@ rFunction <-  function(data,
     return(data)
   }
 }
+
+
+
+#### for checking the output file ######
+# res <- readRDS("./data/output/output.rds")
+# names(res)
+# 
+# head(as.data.frame(res)[, c("timestamp",
+#                             "step_turn_prob",
+#                             "joint_prob",
+#                             "outlier_percentile",
+#                             "is_outlier",
+#                             "timelag_tonext",
+#                             "ground_speed_ms_tonext")], 10)
+# 
+# head(as.data.frame(res)[, ], 10)
