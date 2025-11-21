@@ -16,7 +16,8 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
   on.exit(par(old_par), add = TRUE)
   
   # 2 panels per individual
-  par(mfrow = c(n_ind, 2), mar = c(4, 4, 2, 1))
+  par(mfrow = c(1, 2), mar = c(4, 4, 2, 3), oma = c(0, 0, 2, 0))
+  #par(mfrow = c(n_ind, 2), mar = c(4, 4, 2, 1))
   pal <- grDevices::hcl.colors(100, "Viridis")
   
   for (id in ids) {
@@ -27,9 +28,11 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
     n_outliers_i <- sum(is_outlier_i, na.rm = TRUE)
     n_na_i       <- sum(is_na_prob_i)
     
+    
+    
     ## Panel 1: Probability colouring 
     plot(coords, type = "l",
-         main = paste0("All locations (", id, ")"),
+         main = paste0("All locations" ),
          col = "black", xlab = "Longitude", ylab = "Latitude", asp = 1)
     
     ok <- !is.na(dat_i$log_prob) & !is_na_prob_i
@@ -47,10 +50,17 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
       na_ix <- which(is_na_prob_i)
       points(coords[na_ix, 1], coords[na_ix, 2], col = "gray", pch = 19, cex = 0.7)
     }
-    legend("topright", legend = NA,
-           col = "gray", pch = 19, bty = "n", title = prob_label)
+    #legend("topright", legend = NA,
+           #col = "gray", pch = 19, bty = "n", title = prob_label)
     
-    ##  Panel 2: Kept vs removed
+    legend("topright",
+           #title  = prob_label,
+           legend = c("low prob","med prob", "high prob", "NA prob"),
+           col    = c(pal[10], pal[50], pal[90], "gray"),
+           pch    = 19,
+           bty    = "o")
+    
+    #####  Panel 2: Kept vs removed
     to_remove_i <- is_outlier_i
     if (isTRUE(drop_na)) to_remove_i <- to_remove_i | is_na_prob_i
     
@@ -58,7 +68,7 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
     removed_ix <- which(to_remove_i)
     
     plot(coords, type = "n",
-         main = paste0("Kept vs removed (", id, ")"),
+         main = paste0("Kept vs removed"),
          xlab = "Longitude", ylab = "Latitude", asp = 1)
     if (length(kept_ix) > 1) {
       lines(coords[kept_ix, ], col = "black")
@@ -78,8 +88,19 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
         if (isTRUE(drop_na)) paste0("NAs: ", n_na_i) else NULL
       ),
       col = c("red", if (isTRUE(drop_na)) "gray" else NULL),
-      pch = 19, bty = "n"
+      pch = 19, bty = "o"
     )
+    
+    mtext(
+      paste0("Plots for ", id, " using: ", prob_label),
+      side  = 3,
+      outer = TRUE,
+      line  = 0.5,
+      cex   = 1.1,
+      font  = 2
+    )
+    
+    
   }
 }
 
