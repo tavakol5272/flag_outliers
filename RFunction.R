@@ -8,41 +8,31 @@ library(lubridate)
 ########## Helper: plot per individual ###################################
 
 plot_per_individual <- function(dat, prob_label, drop_na) {
-  # --- get individual label per row from move2 metadata ---
-  td <- mt_track_data(dat)
-  
-  if ("individual_local_identifier" %in% names(td)) {
-    indiv_vec <- td[mt_track_id(dat), "individual_local_identifier", drop = TRUE]
-  } else if ("individual_id" %in% names(td)) {
-    indiv_vec <- td[mt_track_id(dat), "individual_id", drop = TRUE]
-  } else {
-    # fallback: use track id if no individual info
-    indiv_vec <- mt_track_id(dat)
-  }
-  
-  ids   <- unique(as.character(indiv_vec))
-  n_ind <- length(ids)
+  trk_col <- mt_track_id_column(dat)
+  ids     <- unique(as.character(dat[[trk_col]]))
+  n_ind   <- length(ids)
   
   old_par <- par(no.readonly = TRUE)
   on.exit(par(old_par), add = TRUE)
   
   # 2 panels per individual
   par(mfrow = c(1, 2), mar = c(4, 4, 2, 3), oma = c(0, 0, 2, 0))
+  #par(mfrow = c(n_ind, 2), mar = c(4, 4, 2, 1))
   pal <- grDevices::hcl.colors(100, "Viridis")
   
   for (id in ids) {
-    # subset by individual (NOT track id)
-    dat_i <- dat[indiv_vec == id, ]
+    dat_i <- dat[dat[[trk_col]] == id, ]
+    coords <- sf::st_coordinates(dat_i)
+    is_na_prob_i <- dat_i$is_na_prob
+    is_outlier_i <- dat_i$is_outlier
+    n_outliers_i <- sum(is_outlier_i, na.rm = TRUE)
+    n_na_i       <- sum(is_na_prob_i)
     
-    coords        <- sf::st_coordinates(dat_i)
-    is_na_prob_i  <- dat_i$is_na_prob
-    is_outlier_i  <- dat_i$is_outlier
-    n_outliers_i  <- sum(is_outlier_i, na.rm = TRUE)
-    n_na_i        <- sum(is_na_prob_i)
+    
     
     ## Panel 1: Probability colouring 
     plot(coords, type = "l",
-         main = "All locations",
+         main = paste0("All locations" ),
          col = "black", xlab = "Longitude", ylab = "Latitude", asp = 1)
     
     ok <- !is.na(dat_i$log_prob) & !is_na_prob_i
@@ -51,25 +41,26 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
       idx <- pmax(
         1, pmin(
           100,
-          ceiling((dat_i$log_prob[ok] - rng[1]) /
-                    max(1e-12, rng[2] - rng[1]) * 99) + 1
+          ceiling((dat_i$log_prob[ok] - rng[1]) / max(1e-12, rng[2] - rng[1]) * 99) + 1
         )
       )
       points(coords[ok, 1], coords[ok, 2], col = pal[idx], pch = 19, cex = 0.7)
     }
     if (any(is_na_prob_i)) {
       na_ix <- which(is_na_prob_i)
-      points(coords[na_ix, 1], coords[na_ix, 2],
-             col = "gray", pch = 19, cex = 0.7)
+      points(coords[na_ix, 1], coords[na_ix, 2], col = "gray", pch = 19, cex = 0.7)
     }
+    #legend("topright", legend = NA,
+    #col = "gray", pch = 19, bty = "n", title = prob_label)
     
     legend("topright",
-           legend = c("low prob", "med prob", "high prob", "NA prob"),
+           #title  = prob_label,
+           legend = c("low prob","med prob", "high prob", "NA prob"),
            col    = c(pal[10], pal[50], pal[90], "gray"),
            pch    = 19,
            bty    = "o")
     
-    ##### Panel 2: Kept vs removed
+    #####  Panel 2: Kept vs removed
     to_remove_i <- is_outlier_i
     if (isTRUE(drop_na)) to_remove_i <- to_remove_i | is_na_prob_i
     
@@ -77,7 +68,7 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
     removed_ix <- which(to_remove_i)
     
     plot(coords, type = "n",
-         main = "Kept vs removed",
+         main = paste0("Kept vs removed"),
          xlab = "Longitude", ylab = "Latitude", asp = 1)
     if (length(kept_ix) > 1) {
       lines(coords[kept_ix, ], col = "black")
@@ -90,7 +81,6 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
       points(coords[removed_ix, 1], coords[removed_ix, 2],
              col = "red", pch = 19, cex = 0.7)
     }
-    
     legend(
       "topright",
       legend = c(
@@ -109,9 +99,10 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
       cex   = 1.1,
       font  = 2
     )
+    
+    
   }
 }
-
 
 ############ Main Function ######################################
 
@@ -130,36 +121,16 @@ rFunction <-  function(data,
   }
   
   
-  
-  
   # split by individual 
-  # make sure rows are ordered by track id (good for move2)
-  data <- data[order(mt_track_id(data), data$timestamp), ]
-  
-  # split by individual (not by track id)
-  # split by individual (not by track id)
   if (!.per_track) {
-    td <- mt_track_data(data)
-    
-    if ("individual_local_identifier" %in% names(td)) {
-      # use the individual name if available
-      indiv_vec <- td[mt_track_id(data), "individual_local_identifier", drop = TRUE]
-    } else if ("individual_id" %in% names(td)) {
-      # fallback: numeric individual id
-      indiv_vec <- td[mt_track_id(data), "individual_id", drop = TRUE]
-    } else {
-      # last fallback: track id (same behaviour as before)
-      indiv_vec <- mt_track_id(data)
-    }
-    
-    ids <- unique(indiv_vec)
+    trk_col <- mt_track_id_column(data)
+    ids     <- unique(data[[trk_col]])
     
     if (length(ids) > 1L) {
-      # IMPORTANT: split row indices, not the move2 object itself
-      idx_list <- split(seq_len(nrow(data)), indiv_vec)
+      split_list <- split(data, data[[trk_col]])
       
-      res_list <- lapply(idx_list, function(idx) {
-        tr <- data[idx, ]   # this keeps class "move2"
+      # compute per individual 
+      res_list <- lapply(split_list, function(tr) {
         rFunction(
           data       = tr,
           threshold  = threshold,
@@ -183,6 +154,7 @@ rFunction <-  function(data,
         custom     = "Custom probability product"
       )
       
+      # 2 panels per individual
       if (isTRUE(plot)) {
         plot_per_individual(result, prob_label, drop_na)
       }
@@ -191,16 +163,14 @@ rFunction <-  function(data,
     }
   }
   
-  
-  
   ####### cleaning per individual #######################
   #remove:empty locations, bad timestamps, extreme speeds (top 1%), very short time lags (< 60 s)
   
   
-  
+  data <- data[order(mt_track_id(data)), ]
   
   data <- data %>%
-    #arrange(timestamp) %>%
+    arrange(timestamp) %>%
     mutate(
       timelag      = as.numeric(difftime(timestamp, lag(timestamp), units = "secs")),
       step_length  = as.numeric(st_distance(geometry, lag(geometry), by_element = TRUE)), 
