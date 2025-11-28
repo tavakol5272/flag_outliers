@@ -475,3 +475,9 @@ rFunction <-  function(data,
 #                             "ground_speed_ms_tonext")], 10)
 # 
 # head(as.data.frame(res)[, ], 10)
+
+
+#Write to CSV
+# res_df <- as.data.frame(res)
+# show_res_df <- res_df [1:10, c("timestamp", "step_turn_prob","joint_prob", "outlier_percentile","is_outlier","timelag_tonext","ground_speed_ms_tonext")]
+# write.csv(show_res_df, file = "./data/output/output_selected.csv",  row.names = FALSE)
