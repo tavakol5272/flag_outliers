@@ -120,14 +120,30 @@ rFunction <-  function(data,
     return(NULL)
   }
   
+  data <- data[order(mt_track_id(data), data$timestamp), ]
+  
   
   # split by individual 
   if (!.per_track) {
-    trk_col <- mt_track_id_column(data)
-    ids     <- unique(data[[trk_col]])
+    ####spilit by track_id
+    # trk_col <- mt_track_id_column(data)
+    # ids     <- unique(data[[trk_col]])
+    
+    ####spilit by individual name
+    td <- mt_track_data(data)
+    if ("individual_local_identifier" %in% names(td)) {
+      indiv_vec <- td[mt_track_id(data), "individual_local_identifier", drop = TRUE]
+    } else if ("individual_id" %in% names(td)) {
+      indiv_vec <- td[mt_track_id(data), "individual_id", drop = TRUE]
+    } else {
+      indiv_vec <- mt_track_id(data)
+    }
+    
+    ids <- unique(indiv_vec)
     
     if (length(ids) > 1L) {
-      split_list <- split(data, data[[trk_col]])
+      #split_list <- split(data, data[[trk_col]])
+      split_list <- split(data, indiv_vec)
       
       # compute per individual 
       res_list <- lapply(split_list, function(tr) {
@@ -163,14 +179,16 @@ rFunction <-  function(data,
     }
   }
   
+  
+  
   ####### cleaning per individual #######################
   #remove:empty locations, bad timestamps, extreme speeds (top 1%), very short time lags (< 60 s)
   
   
-  data <- data[order(mt_track_id(data)), ]
+  #data <- data[order(mt_track_id(data)), ]
   
   data <- data %>%
-    arrange(timestamp) %>%
+    #arrange(timestamp) %>%
     mutate(
       timelag      = as.numeric(difftime(timestamp, lag(timestamp), units = "secs")),
       step_length  = as.numeric(st_distance(geometry, lag(geometry), by_element = TRUE)), 
