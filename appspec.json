@@ -5,7 +5,7 @@
       "id": "prob_type",
       "name": "Probability Type",
       "description": "Choose the Probability Type",
-      "defaultValue": "joint",
+      "defaultValue": "step_turn",
       "type": "DROPDOWN",
       "options": [
         { "value": "joint",   "displayText": "Joint" },
@@ -19,7 +19,7 @@
       "id": "threshold",
       "name": "Threshold",
       "description": "Probability percentile as a fraction (0–1). e.g.: 0.05 = flag lowest 5% as outliers.",
-      "defaultValue": 0.001,
+      "defaultValue": 0.05,
       "type": "DOUBLE"
     }
     
@@ -55,7 +55,10 @@
     "exclude",
     "remove",
     "delete",
-    "flag"
+    "flag",
+    "probability",
+    "turning angle",
+    "step length",
     
   ],
   "people": [

@@ -1,77 +1,81 @@
-# Name of App *(Give your app a short and informative title. Please adhere to our convention of Title Case without hyphens (e.g. My New App))*
+# Movement Probability Outlier Flagger
 
 MoveApps
 
-Github repository: *github.com/yourAccount/Name-of-App* *(provide the link to the repository where the code of the App can be found)*
+Github repository: *github.com/movestore/????*
 
 ## Description
-*Enter here the short description of the App that might also be used when filling out the description during App submission to MoveApps. This text is directly presented to Users that look through the list of Apps when compiling Workflows.*
+This app detects and flags movement outliers in animal tracking data by modelling step length and turning angle probabilities for each track, using a user-defined probability type and threshold.
 
 ## Documentation
-*Enter here a detailed description of your App. What is it intended to be used for. Which steps of analyses are performed and how. Please be explicit about any detail that is important for use and understanding of the App and its outcomes. You might also refer to the sections below.*
+
+The app detects movement outliers in animal tracking data based on movement probabilities derived from step length and turning angle.
+
+The user can control how outliers are defined via the `Threshold` and `Probability type` settings:
+**Threshold**: Controls how strict outlier detection is (default: 0.05), flagging only the lowest-probability locations as outliers.
+**Probability type**: lets the user choose which movement probability to use for outliers (step_turn, delta_step, delta_turn, joint, or custom), based on different combinations of step length and turning angle.
+
+First, the app splits the data by track ID and detects outliers separately for each track. 
+Then it applies several pre-cleaning steps: it removes empty geometries, missing timestamps, 
+ time lags shorter than 60 seconds, extremely high speeds (top 1%), and all locations from the first and last day. 
+ After cleaning, if an individual track has fewer than three locations, outlier detection for that track is skipped.
+ 
+The app computes step length between consecutive locations and turning angle between successive steps, 
+then estimates a 2D distribution over step length × turning angle and 1D distributions for changes in step length and turning angle. 
+It builds a 2D histogram (raster) of step length vs. turning angle and usesthe selected probability measures (joint, step_turn, delta_step, delta_turn, custom) to flag outliers. 
+
+For each track, two plots are produced: All locations (coloured by probability) and Kept vs removed (showing which points are flagged as outliers).
+
+Before returning, the function prints a small table of outlier locations.
+
+On return, the app outputs the original data as a move2 object with additional columns:
+step_length_mv, turning_angle_mv, step_turn_prob, delta_step_prob, delta_turn_prob, joint_prob, custom_prob, log_prob, outlier_percentile, is_outlier, and is_na_prob. 
+
 
 ### Application scope
 #### Generality of App usability
-*State here if the App was developed for a specific species, taxon or taxonomic group, or to answer a specific question. How might it influence the scope and utility of the App. This information will help the user to understand why the App might be producing no or odd results.*
-
-*Examples:*
-
-This App was developed using data of birds. 
-
-This App was developed using data of red deer. 
-
 This App was developed for any taxonomic group. 
 
-This App was developed to identify kill sites, but can probably be used to identify any kind of location clusters like nests, dens or drinking holes.
-
 #### Required data properties
-*State here the required and/or optimal data properties for this App to perform properly.*
-
-*Examples:*
-
-This App is only applicable to data that reflect range resident behavior. 
-
-The data should have a fix rate of at least 1 location per 30 minutes. 
-
-The App should work for any kind of (location) data.
+The App was developed and tested with Sigfox tracking data, but it works with any kind of move2 object.
 
 ### Input type
-*Indicate which type of input data the App requires.*
-
-*Example*: `move2::move2_loc`
+`move2::move2_loc`
 
 ### Output type
-*Indicate which type of output data the App produces to be passed on to subsequent Apps.*
-
-*Example:* `move2::move2_loc`
+`move2::move2_loc`
 
 ### Artefacts
-*If the App creates artefacts (e.g. csv, pdf, jpeg, shapefiles, etc), please list them here and describe each.*
+`Plots` :
+For each track, two plots are produced:
+1.	**All locations (probability)**: Points colored by log probability.
+2.	**Kept vs removed** : outliers in red and Kept points in blue.
 
-*Example:* `rest_overview.csv`: csv-file with Table of all rest site properties
+**logs output**: Before returning, the function prints a small table of outlier locations.
 
-### Settings 
-*Please list and define all settings/parameters that the App requires to be set by the App user, if necessary including their unit. Please first state the Setting name the user encounters in the Settings menu defined in the appspecs.json, and between brackets the argument used in the R function to be able to identify it quickly in the code if needed.*
+**Returned data** : returns the input `move2` object with additional columns for movement metrics, probabilities, and outlier flags.
 
-*Example:* `Radius of resting site` (radius): Defined radius the animal has to stay in for a given duration of time for it to be considered resting site. Unit: `metres`.
+### Settings
+
+`Threshold:`: Probability percentile as a fraction (0–1). e.g.: 0.05 = flag lowest 5% as outliers.
+
+`Probability type`: Dropdown to select select which movement probability is used for outlier detection. Options:
+**step_turn**: Probability of the current step length + turning angle combination.(Default)
+**joint**: Combined probability of step_turn × delta_step × delta_turn (most restrictive)
+**delta_step**: Probability of the change in step length from one step to the next.
+**delta_turn**: Probability of the change in turning angle from one step to the next.
+**custom**: Combined probability of step_turn × delta_step only.
 
 ### Changes in output data
-*Specify here how and if the App modifies the input data. Describe clearly what e.g. each additional column means.*
 
-*Examples:*
-
-The App adds to the input data the columns `Max_dist` and `Avg_dist`. They contain the maximum distance to the provided focal location and the average distance to it over all locations. 
-
-The App filterers the input data as selected by the user. 
-
-The output data is the outcome of the model applied to the input data. 
-
-The input data remains unchanged.
+The App returns the input `move2` object with additional columns:
+`step_length_mv`, `turning_angle_mv`, `step_turn_prob`, `delta_step_prob`, `delta_turn_prob`, `joint_prob`, `custom_prob`, `log_prob`, `outlier_percentile`, `is_outlier`, `is_na_prob`. 
 
 ### Most common errors
-*Please describe shortly what most common errors of the App can be, how they occur and best ways of solving them.*
+Track id(s) with `NA`: Outlier detection requires valid track IDs for all locations.  
+Too few locations after cleaning: If a track has fewer than 3 locations after pre-cleaning, outlier detection for that track is skipped.
+
 
 ### Null or error handling
-*Please indicate for each setting as well as the input data which behaviour the App is supposed to show in case of errors or NULL values/input. Please also add notes of possible errors that can happen if settings/parameters are improperly set and any other important information that you find the user should be aware of.*
-
-*Example:* **Setting `radius`:** If no radius AND no duration are given, the input data set is returned with a warning. If no radius is given (NULL), but a duration is defined then a default radius of 1000m = 1km is set. 
+If the input is `NULL` or has 0 rows, the App returns `NULL` and logs an info message.  
+Tracks with fewer than 3 locations after cleaning are returned unchanged (no outlier flags)
