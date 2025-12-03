@@ -1,4 +1,5 @@
 {
     "threshold": 0.05,
-     "prob_type": "step_turn"
+     "prob_type": "step_turn",
+     "outlier_handling": "flag"
 }

@@ -8,10 +8,10 @@
       "defaultValue": "step_turn",
       "type": "DROPDOWN",
       "options": [
-        { "value": "joint",   "displayText": "Joint" },
         { "value": "step_turn",  "displayText": "Step turn" },
         { "value": "delta_step", "displayText": "Delta Step" },
         { "value": "delta_turn", "displayText": "Delta Turn" },
+        { "value": "joint",   "displayText": "Joint" },
         { "value": "custom", "displayText": "Custom" }
       ]
     },
@@ -21,6 +21,17 @@
       "description": "Probability percentile as a fraction (0–1). e.g.: 0.05 = flag lowest 5% as outliers.",
       "defaultValue": 0.05,
       "type": "DOUBLE"
+    },
+    {
+      "id": "outlier_handling",
+      "name": "Outlier handling",
+      "description": "Choose whether outliers are only flagged or removed",
+      "defaultValue": "flag",
+      "type": "RADIOBUTTONS",
+      "options": [
+        { "value": "flag",   "displayText": "Flag outliers (keep them in the data)" },
+        { "value": "remove",  "displayText": "Remove outliers (delete them from the data)" }
+      ]
     }
     
   ],
@@ -58,7 +69,7 @@
     "flag",
     "probability",
     "turning angle",
-    "step length",
+    "step length"
     
   ],
   "people": [

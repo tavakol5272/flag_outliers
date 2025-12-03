@@ -5,15 +5,13 @@ MoveApps
 Github repository: *github.com/movestore/????*
 
 ## Description
-This app detects and flags movement outliers in animal tracking data by modelling step length and turning angle probabilities for each individual, using a user-defined probability type and threshold.
-
-## Description
 This app detects and flags movement outliers in animal tracking data based on an expected tag error rate. 
 Given a user-defined probability type and threshold, it uses step length, turning angle and related movement probabilities to flag the least likely locations as outliers in each individual.
 
 
 
 ## Documentation
+
 **Notes:**   
   1-Before running the app, the user must change Attribute defining track ID in the option tab(Configure Movebank Location Datasource) from "Combination of animal and deployment (default)"
 to "Animal", because subsequent analyses will be performed by this track ID.
@@ -27,10 +25,14 @@ The user controls how outliers are defined via the `Threshold` and `Probability 
 
 - **Threshold**: Fraction of locations expected to be erroneous for this tag (default: 0.05). e.g., if the threshold is defined to 0.05 so that about the 5% least probable locations are flagged as outliers. 
 
-- **Probability type**: Chooses which movement probability is used for outlier detection (`step_turn`, `delta_step`, `delta_turn`, `joint`, or `custom`), based on different combinations of step length 
-  and turning angle.
+- **Probability type**: Chooses which movement probability is used for outlier detection (`Step turn`, `Delta step`, `Delta turn`, `Joint`, or `Custom`), based on different combinations of step length 
+  and turning angle.  
   
--**Note:**: If the threshold is not known from the tag engineers, an appropriate probability type and threshold should be chosen by checking visually and trying different settings. 
+-**Outlier handling**: "Choose whether outliers are only flagged or removed"(`Flag outliers (keep them in the data)` , `Remove outliers (delete them from the data)`)
+  
+-**Notes:**:  
+  1-If the threshold is not known from the tag engineers, an appropriate probability type and threshold should be chosen by checking visually and trying different settings.  
+  2- **Strongly recommend** that, if you want to remove outliers, you first run the app with flagging only. Once you are confident that the settings are appropriate, you can rerun it with outlier removal enabled.
 
 First, the app splits the data by individuals; user should change the Attribute defining track ID in option tab (Configure Movebank Location Datasource) when getting the data from Movebank to "Animal"
 (not the default one:combinationof animal and deployment). The subsequent analyses will be performed by this track ID.
@@ -85,11 +87,15 @@ For each individual, two plots are produced:
 `Threshold:`: Probability percentile as a fraction (0–1). e.g.: 0.05 = flag the 5% of locations with the lowest probability to be real locations.
 
 `Probability type`: Dropdown to select which movement probability is used for outlier detection. Options:  
-**step_turn**: Probability of the current step length + turning angle combination.(Default)  
-**delta_step**: Probability of the change in step length from one step to the next.  
-**delta_turn**: Probability of the change in turning angle from one step to the next.  
-**joint**: Combined probability of step_turn × delta_step × delta_turn (most restrictive)  
-**custom**: Combined probability of step_turn × delta_step only.
+**Step turn**: Probability of the current step length + turning angle combination.(Default)  
+**Delta step**: Probability of the change in step length from one step to the next.  
+**Delta turn**: Probability of the change in turning angle from one step to the next.  
+**Joint**: Combined probability of step_turn × delta_step × delta_turn (most restrictive)  
+**Custom**: Combined probability of step_turn × delta_step only.
+
+`Outlier handling`: Radiobuttons to choose whether outliers are only flagged or removed. options:    
+-**Flag outliers**: keep them in the data    
+-**Remove outliers:** delete them from the data
 
 ### Changes in output data
 

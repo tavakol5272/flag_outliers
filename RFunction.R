@@ -109,7 +109,7 @@ plot_per_individual <- function(dat, prob_label, drop_na) {
 rFunction <-  function(data,
                        threshold,
                        prob_type = c("joint", "step_turn", "delta_step", "delta_turn", "custom"),
-                       remove = FALSE,
+                       outlier_handling = c("flag", "remove"),
                        plot = TRUE,
                        drop_na = FALSE,
                        .per_track = FALSE) {
@@ -132,12 +132,12 @@ rFunction <-  function(data,
       # compute per individual 
       res_list <- lapply(split_list, function(tr) {
         rFunction(
-          data       = tr,
-          threshold  = threshold,
-          prob_type  = prob_type,
-          remove     = remove,
-          plot       = FALSE,
-          drop_na    = drop_na,
+          data = tr,
+          threshold = threshold,
+          prob_type = prob_type,
+          outlier_handling = outlier_handling,
+          plot  = FALSE,
+          drop_na = drop_na,
           .per_track = TRUE
         )
       })
@@ -451,13 +451,18 @@ rFunction <-  function(data,
   
   
   # Return filtered or original object
-  if (isTRUE(remove)) {
+  if (outlier_handling == "remove") {
     to_remove <- data$is_outlier | (drop_na & data$is_na_prob)
+    n_removed <- sum(to_remove, na.rm = TRUE)
+    logger.info(paste0("Removing ", n_removed," outliers from the data" ))
+    
     filtered_data <- data[!to_remove, ]
     return(filtered_data)
-  } else {
+  } else {  
+    logger.info("Outliers are only flagged and kept in the data.")
     return(data)
   }
+  
 }
 
 
