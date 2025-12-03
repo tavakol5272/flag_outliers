@@ -9,7 +9,7 @@ This app detects and flags movement outliers in animal tracking data by modellin
 
 ## Description
 This app detects and flags movement outliers in animal tracking data based on an expected tag error rate. 
-Given a user-defined probability typa and threshold, it uses step length, turning angle and related movement probabilities to to flag the least likely locations as outliers in each individual.
+Given a user-defined probability type and threshold, it uses step length, turning angle and related movement probabilities to flag the least likely locations as outliers in each individual.
 
 
 
@@ -30,16 +30,16 @@ The user controls how outliers are defined via the `Threshold` and `Probability 
 - **Probability type**: Chooses which movement probability is used for outlier detection (`step_turn`, `delta_step`, `delta_turn`, `joint`, or `custom`), based on different combinations of step length 
   and turning angle.
   
--**Note:**: If the threshold is not known from the tag engineers, a suitable probability type and threshold should be found to apply. 
-  
+-**Note:**: If the threshold is not known from the tag engineers, an appropriate probability type and threshold should be chosen by checking visually and trying different settings. 
+
 First, the app splits the data by individuals; user should change the Attribute defining track ID in option tab (Configure Movebank Location Datasource) when getting the data from Movebank to "Animal"
 (not the default one:combinationof animal and deployment). The subsequent analyses will be performed by this track ID.
 
-Then it applies several pre-cleaning steps. Removes:
-  -empty geometries and timestamps
-  -time lags shorter than 60 seconds: fixes are at least 5 minutes apart in the tag, so points closer than 60 seconds to each other are wrong fixes. 
-  -extremely high speeds (top 1%):mostly caused by tag/GPS errors rather than true animal movement.
-  -all locations from the first and last day: tagging is stressful and the last day data are typically incomplete.
+Then it applies several pre-cleaning steps. Removes:  
+  -empty geometries and timestamps  
+  -time lags shorter than 60 seconds: fixes are at least 5 minutes apart in the tag, so points closer than 60 seconds to each other are wrong fixes   
+  -extremely high speeds (top 1%):mostly caused by tag/GPS errors rather than true animal movement  
+  -all locations from the first and last day: tagging is stressful and the last day data are typically incomplete  
  
 After cleaning, if an individual has fewer than three locations, outlier detection for that individual is skipped because turning angle cannot be computed with less than 3 points.
  
